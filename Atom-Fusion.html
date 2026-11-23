@@ -1,0 +1,1081 @@
+<!doctype html>
+<html lang="pt-BR">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Atom Fusion · Social Wars</title>
+<link rel="icon" type="image/png" sizes="64x64" href="https://wars.fbgamesweb.com/img/brand/icon-64.png">
+<style>
+:root{color-scheme:dark;font:16px/1.55 system-ui,sans-serif;background:#10141e;color:#e7eef9}
+body{max-width:1100px;margin:auto;padding:28px clamp(16px,5vw,56px)}
+header{padding:30px 0 20px} h1{font-size:clamp(2.7rem,8vw,5rem);letter-spacing:-.055em;line-height:1;margin:8px 0 14px}
+h2,h3,p{margin:0 0 12px} a{color:#91e7d9} small,.sub{color:#b4c3da} .eyebrow,.hp{color:#9bf3de;font-weight:750}
+section,article,details.inventory{border:1px solid #34415a;background:#192233;border-radius:15px;padding:20px;margin-bottom:18px}
+.controls{display:flex;flex-wrap:wrap;gap:14px;align-items:center;margin-bottom:16px}
+input[type=search]{padding:10px 13px;border:1px solid #697b98;border-radius:8px;background:#111925;color:inherit;flex:1;min-width:190px;font:inherit}
+summary{cursor:pointer;font-weight:700}.inventory-grid{display:grid;grid-template-columns:repeat(var(--inventory-columns,1),minmax(0,1fr));gap:16px;margin-top:14px}
+.inventory-column{display:flex;flex-direction:column;gap:6px;min-width:0}
+.inventory-grid label{display:flex;align-items:center;gap:8px;cursor:pointer;min-width:0}
+.inventory-grid .portrait{width:44px;height:44px;font-size:.55rem;line-height:1.1}
+.inventory-grid .portrait img{width:40px;height:40px}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,310px),1fr));gap:16px}
+.recipe-usage{color:#b4c3da;font-weight:400;font-size:.8rem;white-space:nowrap}
+.stage{grid-column:1/-1;margin:12px 0 0;padding-bottom:6px;border-bottom:1px solid #34415a}
+.later{margin-top:12px}.later summary{color:#b4c3da;font-size:.9rem}.ingredient{scroll-margin-top:16px}
+.navigation{display:flex;gap:20px;margin-bottom:20px}.navigation [aria-current=page]{color:#e7eef9;font-weight:700}
+.unit-index{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:8px 18px;margin-top:12px}
+.unit-detail .portrait{width:100px;height:100px}.unit-detail img{width:94px;height:94px}
+.fusion-unit-link{position:relative}
+.fusion-unit-link .fusion-unit-preview{display:none;position:absolute;z-index:5;bottom:calc(100% + 6px);left:0;width:88px;height:88px;align-items:center;justify-content:center;pointer-events:none;box-shadow:0 6px 18px #0008}
+.fusion-unit-preview img{width:80px;height:80px}
+.fusion-unit-link:hover .fusion-unit-preview,.fusion-unit-link:focus-visible .fusion-unit-preview{display:flex}
+article{margin:0;min-width:0} .unit{display:flex;align-items:center;gap:14px;margin-bottom:14px}.portrait{display:grid;place-items:center;width:72px;height:72px;flex:none;background:#111925;border:1px solid #35445e;border-radius:12px;font-size:.72rem;text-align:center;color:#b4c3da}
+.portrait img{width:66px;height:66px;object-fit:contain;border-radius:9px} h3{margin:0;font-size:1.11rem}
+ul{margin:0;padding-left:20px} li{padding:4px 0} .ready{color:#a4f4b7} .recipe-note{display:block;font-size:.85rem;color:#b4c3da} footer{padding:24px 0}
+</style>
+<header>
+<div class="eyebrow">SOCIAL WARS</div>
+<h1>Atom Fusion</h1>
+<p>Combinações relatadas para soldados, veículos, aeronaves, dragões e mechs.</p>
+</header>
+<nav class="navigation" aria-label="Navegação do guia"><a id="fusion-nav" href="#fusoes">Fusões</a><a id="codex-nav" href="#unidades">Códice de unidades</a></nav>
+<div id="fusion-view">
+<section aria-labelledby="analysis">
+<h2 id="analysis">Quais duplas rendem mais opções?</h2>
+<p id="top"></p>
+<p>Para começar com unidades comuns, procure <strong>Soldier</strong>, <strong>Bazooka</strong> ou <strong>Machine Gun Jeep</strong>. Para tentar o <strong>King Kong Mech</strong> com unidades de HP mais baixo, a Wiki cita <strong>Aircraft III + Aircraft IV</strong> e <strong>Stealth Fighter + Aircraft IV</strong>.</p>
+<p class="sub">A mesma dupla pode gerar outras unidades. As fontes comunitárias não informam as chances, e recriações do jogo podem usar regras diferentes.</p>
+</section>
+<section aria-labelledby="progression">
+<h2 id="progression">Ordem para fazer as fusões</h2>
+<p>Comece pelos ingredientes de base. Cada etapa vem depois das unidades usadas na rota mais curta. Dentro da etapa, os primeiros resultados exigem menos fusões de pré-requisito.</p>
+<p class="sub">A ordem considera as receitas do guia. Tempo, custo e chance de sucesso podem variar. Ingredientes sem receita registrada precisam ser obtidos no jogo.</p>
+<details><summary>Etapa 0 · Ingredientes de base</summary><p id="base-ingredients" class="sub"></p></details>
+</section>
+<div class="controls">
+<input id="query" type="search" aria-label="Buscar unidade ou ingrediente" placeholder="Buscar unidade ou ingrediente">
+<label>HP do resultado <select id="hp-filter"><option value="">Todos</option><option value="low">Abaixo de 1.000</option><option value="mid">1.000 a 2.999</option><option value="high">3.000+</option><option value="unknown">Sem HP localizado</option></select></label>
+<label><input id="available" type="checkbox"> Só com minhas unidades</label>
+</div>
+<details class="inventory"><summary>Marcar as unidades que tenho</summary>
+<p class="sub">Se a receita pede duas unidades iguais, você precisa de duas cópias.</p><div class="inventory-grid" id="inventory"></div>
+<p class="sub" id="inventory-storage-status" role="status"></p>
+</details>
+<p id="count" class="sub" role="status"></p>
+<main class="cards" id="cards"></main>
+</div>
+<section id="codex-view" hidden>
+<div id="codex-index">
+<h2 tabindex="-1" id="codex-heading">Códice de unidades</h2>
+<div class="controls"><input id="unit-query" type="search" aria-label="Buscar no Códice de unidades" placeholder="Buscar unidade pelo nome"></div>
+<p id="unit-count" class="sub" role="status"></p>
+<div class="unit-index" id="unit-index"></div>
+</div>
+<div id="unit-detail" class="unit-detail" hidden></div>
+</section>
+<footer>
+<p>Receitas comunitárias. Os retratos carregam do <a href="https://wars.fbgamesweb.com/how-to-play?lang=en#codice">Códice do Social Wars</a>, que também foi usado para completar o HP.</p>
+<p><a href="https://socialwars.fandom.com/wiki/Category:Atom_Fusion_HP_3000%2B">Categoria HP 3000+</a> · <a href="https://socialwars.fandom.com/wiki/Tables_of_Units">Tabela de HP</a> · <a href="https://socialwars.fandom.com/wiki/Atom_Fusion">Atom Fusion</a> · <a href="https://www.fandom.com/saved/eMbbnEjDjAC7iCKo">Lista salva no Fandom</a> (conteúdo indisponível na consulta)</p>
+</footer>
+<script>
+const sources = {
+  w:['Wiki', 'https://socialwars.fandom.com/wiki/'],
+  b:['Lista de 2014', 'https://socialwarsdicas.blogspot.com/2014/03/atom-fusion-lista.html'],
+  e:['Wiki em espanhol', 'https://socialwars.fandom.com/es/wiki/Atom_Fusion'],
+  f:['Relato de 2017', 'https://atomsocialwar.blogspot.com/2017/07/atom-fusion-social-wars.html'],
+  c:['Códice', 'https://wars.fbgamesweb.com/how-to-play?lang=en']
+};
+const units = [
+['Atomic Bonecrusha',7200,'',''],
+['Fire Godzilla Mech',3800,'1305_blackGodzilla_mech',`War Buggy|Red Spinner|b|Raro no relato
+Red Mercury Dragon|Dragonborn Mech|b
+Red Mercury Dragon|Spartan Warrior Mech|b,e|A lista de 2014 cita +2 Power Ups.
+Red Mercury Dragon|Forge Dragon|b
+Big Razor Mech|Liquid Mech|f|O autor relata 26 cliques em Cash.`],
+['Massive Gunner Mech',3700,'1303_massiveGunnerMech',`Godzilla Mech|Fire Godzilla Mech|b|Relato com +2 Power Ups
+Godzilla Mech|Proto Winged Mech|b|Raro no relato
+Spartan Warrior Mech|Karateka Gunner|b
+Executioner Mech|Golden Slayer|b`],
+['Z Project Mech',3600,'1301_zProjectMech',`Red Mercury Dragon|Spartan Warrior Mech|b|Relato com +1 Power Up
+Godzilla Mech|Proto Winged Mech|b|Raro no relato`,'Z_Project_mech'],
+['Gamera Mech',3500,'1299_gameraMech',`MegaBot|Viking Sniper|b
+Godzilla Mech|Proto Winged Mech|b
+Red Mercury Dragon|Spartan Warrior Mech|b,e
+Fire Godzilla Mech|Massive Gunner Mech|b|A fonte chama o ingrediente de “Big Gunner Mech”.
+King Kong Mech|Godzilla Mech|b`],
+['King Kong Mech',3400,'1297_kingKongMech',`Red Mercury Dragon|Spartan Warrior Mech|w
+MegaBot|Mr. Treat|w
+MegaBot|Soldier V|b
+Ether Messiah|Golden Slayer|w
+Red Mercury Dragon|Big Razor Mech|w
+Siege Striker|Siege Striker|w
+Laser Blade Automech|Spartan Warrior Mech|w
+Aircraft III|Aircraft IV|w
+Stealth Fighter|Aircraft IV|w
+Red Mercury Dragon|Z Project Mech|w
+Godzilla Mech|Fire Godzilla Mech|w
+2-Head Frostfire Dragon|Spartan Warrior Mech|w
+Gamera Mech|Proto Winged Mech|w
+Spartan Warrior Mech|Pharaoh Warrior Mech|w
+Soldier|Fire Godzilla Mech|w
+Executioner Mech|2-Head Frostfire Dragon|w
+Godzilla Mech|Proto Winged Mech|w,b
+Avenger Mech|Spartan Warrior Mech|w
+MegaBot|Blue Dragon|w
+Avenger Mech|Samurai Mech|w|Nome usado na Wiki.
+Massive Gunner Mech|Avenger Mech|w
+Red Dragon|Tank V|w
+Forge Dragon|Electric Dragon|w
+Armored Core Alpha|Proto Winged Mech|w
+Fire Karateka|Godzilla Mech|w
+Massive Gunner Mech|Spartan Warrior Mech|s|Também há relato de Siege Striker.`],
+['Godzilla Mech',3300,'1293_godzilla_mech',`Red Spinner|Tank II|b
+Red Mercury Dragon|Spartan Warrior Mech|e
+Spartan Warrior Mech|2-Head Frostfire Dragon|b`],
+['Executioner Mech',3200,'1290_executioner_mech',`Red Mercury Dragon|Spartan Warrior Mech|w,b|A lista de 2014 cita +1 Power Up.
+Red Mercury Dragon|Forge Dragon|w
+Gamera Mech|Celestial Megamech|w
+Forge Dragon|Prototype Mech|b|Nome usado na fonte.
+Godzilla Mech|Proto Winged Mech|b
+Fire Godzilla Mech|Black Metal Dragon|b
+Red Mercury Dragon|Z Project Mech|b`],
+['Avenger Mech',3100,'1287_avenger_mech',`Godzilla Mech|Proto Winged Mech|b
+Executioner Mech|Godzilla Mech|e
+Arachnid Mech|Electric Dragon|f|O autor relata 1 clique em Cash.`],
+['2-Head Frostfire Dragon',3000,'1280_frost_fire_dragon',`MegaBot|Blue Dragon|b
+Godzilla Mech|Proto Winged Mech|b|Raro no relato`],
+['Dark Ether Messiah',2250,'1239_dark_ether_messiah',`MegaBot|Spartan Warrior Mech|b
+Red Baron|Z Project Mech|b`]
+].map(([name,hp,photo,raw,slug=name.replaceAll(' ','_')])=>({
+  name,hp,photo,slug, recipes:raw ? raw.split('\n').map(line=>line.split('|')) : []
+}));
+const pairOf = (a,b)=>[a,b].sort().join(' + ');
+const moreSources = {
+  h:'Blue_Steel_Bahamut', j:'Samurai_Bot', m:'MULTIFORMS', r:'Roller_Skater'
+};
+const stats = {"Forge Dragon":[2300,"1243_forge_dragon"],"ATP Mech":[1800,""],"Golden Slayer":[1900,""],"Samurai Bot":[1650,"1126_samurai_bot_m"],"Z Project Mech":[3600,""],"Arachnid Mech":[2900,""],"Multi Morpher":[2200,""],"Laser Blade Automech":[2600,""],"Viking Core Bot":[1275,""],"Armored Core Alpha":[1800,""],"Gamera Mech":[3500,""],"Avenger Mech":[3100,""],"2-Head Frostfire Dragon":[3000,""],"Massive Gunner Mech":[3700,""],"Siege Striker":[1500,"1285_plasma_striker"],"Big Razor Mech":[2700,""],"Black Belt Archer":[1750,""],"Massive Cannon Mech":[2100,""],"King Kong Mech":[3400,""],"Fire Godzilla Mech":[3800,""],"Brutus Mech":[1900,""],"2-Gun Exobot":[1900,""],"Liquid Mech":[2150,""],"Golden Golem":[1950,""],"Ultra-Mech":[1800,""],"Fire Karateka":[1800,""],"Godzilla Mech":[3300,""],"MegaTank":[1000,"1037_megatank"],"UFO":[900,"1177_ufo"],"Swamp Minion":[250,"1231_nebula_monster_mini"],"Nebular Sniper":[500,"1220_nebular_sniper"],"Viking Sniper":[500,"1174_viking_sniper"],"Blue Steel Bahamut":[1900,"1167_bahamut_metalico"],"Black Brutus Mech":[2100,""],"Double Gun Soldier":[110,"1045_double_gun_soldier_m"],"Double Bazooka Jeep":[275,"1044_double_bazooka_jeep_m"],"F-117":[700,"1096_f117_m"],"Stealth Fighter":[650,"1048_black_aircraft_2_m"],"Samurai Minibot":[180,""],"Red Mercury Dragon":[2200,"1226_dragon_metalic"],"MegaBot":[1600,"1062_bumblebee_m"],"Spartan Warrior Mech":[2800,"1263_spartan_warrior_mech"]};
+const codexDetails = `Arachnid Mech|2900|1272_transformer_aracnid
+Big Razor Mech|2700|1256_big_razor_mech
+Laser Blade Automech|2600|1248_laser_blade_automech
+Multi Morpher|2200|1274_multi_morph
+Liquid Mech|2150|1222_liquid_mech
+Black Brutus Mech|2100|1279_black_brutus_mech
+Massive Cannon Mech|2100|1215_massive_cannon_mech
+Golden Golem|1950|1190_gold_golem
+2-Gun Exobot|1900|1236_2gun_exobot
+Brutus Mech|1900|1217_brutus_mech
+Golden Slayer|1900|1181_transformer_sword
+Armored Core Alpha|1800|1127_huge_robot_m
+ATP Mech|1800|1212_tetrapod_mech
+Fire Karateka|1800|1184_karateka
+Ultra-Mech|1800|1152_transformer_gigante
+Black Belt Archer|1750|1207_transformer_archer
+Viking Core Bot|1275|1160_dwarf_armored_core
+Samurai Minibot|180|1129_samurai_minibot_m
+Arachnid Drone|475|1273_transformer_aracnid_drone
+Blazing Beast Rider|1200|1213_nebular_monster_rider
+Celestial Megamech|1700|1101_celestial_megamech_m
+Converter Wizard|1500|1241_enemy_converter_priest
+Cyber Samurai Mech|2200|1237_cyber_samurai_mech
+Dino Rider Elf|1300|1282_elf_dino_rider
+Double Cannon Mech|2300|1246_double_cannon_mech
+Dragonborn Mech|1950|1192_dragon_mech
+Dual Blade Automech|2000|1205_dual_blade_automech
+Electric Dragon|2000|1194_electric_dragon_2
+Ether Messiah|1900|1178_ether_messiah
+Evil Hannibal|150|1012_bad_boy
+Gamera Drone|550|1300_gameraDrone
+General Scarlett|250|1009_good_girl_m
+Great Shogun Mech|2050|1210_samurai_mech
+Great Sword Warrior|700|1188_avatar_great_warrior
+Gunbot|1200|1061_baby_robot_m
+Hercules Mech|1900|1242_herkules_mech
+Hyper Blazer|1850|1172_mega_fire_bot
+Karateka Gunner|2600|1252_karateka_gunner
+Killer Driller|1950|1223_drill
+Massive Cannon Drone|450|1216_massive_cannon_drone
+Massive Gunner Drone|550|1304_massiveGunnerDrone
+Metal Dragon|1800|1105_metalico_dragon3_m
+Nebular Dragon Rider|725|1199_nebular_dragon_rider
+Nebular Priest|800|1208_nebula_priest
+Nemesis Core|1800|1162_ultra_robot
+Pharaoh Warrior Mech|2850|1271_egyptian_warrior_mech
+Poison Spider|150|1144_ranged_spider_s
+Prime Automech|2400|1254_optimus_prime
+Proto Winged Mech|2900|1268_winged_transformer
+Red Spinner|1650|1112_optimus_m
+Red Tank|150|1002_Red_Tank_m
+Robot Hunter|1400|1180_robot_hunter
+Roller Skater|1750|1169_transformer_skater
+Sergeant Megan|200|1024_good_guillerma
+Silver Hercules|1900|1197_herkules_matrix
+Space Airship Elf|750|1262_spatial_airship
+Spider Bot|2000|1270_spider_bot
+Swamp Monster|2000|1228_nebula_monster
+Swat Soldier|1850|1218_swat_soldier
+T-Rex|1200|1057_t-rex_m
+Watcher Hero|2300|1284_cyclop_soldier
+Winged Paladin|850|1291_winged_paladin
+Black Metal Dragon|1950|1191_black_dragon|Black Dragon
+Nebula Knight|280|1198_nebular_horse_rider|Nebular Knight
+Nemesis Core Drone|400|1163_ultra_robot_drone|Nemesis Drone
+Rambo|500|1072_rambo_m|Ranbo
+Space Elf Healer|650|1275_spatial_elf_healer|Space Healer Elf`;
+for (const row of codexDetails.split('\n')) {
+  const [name,hp,portrait,codexName] = row.split('|');
+  stats[name] = [Number(hp),portrait,codexName];
+}
+const catalog = new Map(units.map(unit=>[unit.name,unit]));
+const additionalRecipes = `Massive Cannon Drone|General Scarlett|War Buggy|b|Não confirmado na fonte
+Forge Dragon|Hyper Blazer|Spartan Warrior Mech|b|
+Executioner Mech|Spartan Warrior Mech|Red Mercury Dragon|b|+ 1 Power Up
+Nemesis Core|Celestial Megamech|Supreme Bot|b|
+ATP Mech|MegaBot|Soldier VI|b|+1 Power Up
+Proto Winged Mech|Executioner Mech|Spartan Warrior Mech|b|
+Dark Ether Messiah|MegaBot|Spartan Warrior Mech|b|
+Golden Slayer|MegaBot|Spartan Warrior Mech|b|
+Ether Messiah|Spartan Warrior Mech|Helicopter V|b|
+Samurai Bot|Spartan Warrior Mech|Viking Sniper|b|
+T-Rex|Spartan Warrior Mech|Soldier V|b|
+Prime Automech|Forge Dragon|Red Mercury Dragon|b|
+Z Project Mech|Red Mercury Dragon|Spartan Warrior Mech|b|+ 1 Power Up
+Proto Winged Mech|Red Mercury Dragon|Forge Dragon|b|Autor relata várias tentativas
+Arachnid Mech|Spartan Warrior Mech|Red Mercury Dragon|b|+1 power up
+Swamp Monster|Supreme Bot|Mega Bot|b|
+Multi Morpher|Metal Dragon|Red Mercury Dragon|b|
+Karateka Gunner|Spartan Warrior Mech|Red Mercury Dragon|b|
+Red Spinner|MegaBot|MegaBot|b|
+Great Shogun Mech|MegaBot|Spartan Warrior Mech|b|
+Cyber Samurai Mech|MegaBot|Spartan Warrior Mech|b|
+Spider Bot|Red Mercury Dragon|Spartan Warrior Mech|b|
+Laser Blade Automech|Avenger Mech|2-Head Frostfire Dragon|b|
+Executioner Mech|Forge Dragon|Prototype Mech|b|
+Dual Blade Automech|Megamech|Viking Core|b|
+Forge Dragon|Red Mercury Dragon|Metal Dragon|b|+2 power ups
+Egyptian Warrior Mech|Godzilla Mech|Double Shogun Mech|b|
+Viking Core Bot|Blue Dragon|Blue Dragon|b|
+T-Rex|Metal Dragon|Metal Dragon|b|
+Egyptian Warrior Mech|Arachnid Mech|Dino Elf Rider|b|
+Armored Core Alpha|Samurai Bot|Blue Dragon|b|
+Gamera Mech|MegaBot|Viking Sniper|b|Autor relata várias tentativas
+Arachnid Mech|Godzilla Mech|Proto Winged Mech|b|Autor relata várias tentativas
+Executioner Mech|Godzilla Mech|Proto Winged Mech|b|Autor relata várias tentativas
+Spartan Warrior Mech|Godzilla Mech|Proto Winged Mech|b|Autor relata várias tentativas
+Avenger Mech|Godzilla Mech|Proto Winged Mech|b|Autor relata várias tentativas
+2-Head Frostfire Dragon|Godzilla Mech|Proto Winged Mech|b|Raro no relato
+Massive Gunner Mech|Godzilla Mech|Proto Winged Mech|b|Raro no relato
+Karateka Gunner|Godzilla Mech|Proto Winged Mech|b|
+Pharaoh Warrior Mech|Red Mercury Dragon|Spartan Warrior Mech|b|
+Karateka Gunner|Red Mercury Dragon|Spartan Warrior Mech|b|
+Gamera Mech|Fire Godzilla Mech|Massive Gunner Mech|b|
+Siege Striker|Fire Godzilla Mech|Godzilla Mech|b|
+Big Razor Mech|Fire Godzilla Mech|Godzilla Mech|b|
+Prime Automech|Fire Godzilla Mech|Proto Winged Mech|b|
+Hyper Blazer|Samurai Bot|Metal Dragon|b|
+Red Spinner|Rune Golem|Celestial Megamech|b|
+Massive Gunner Mech|Spartan Warrior Mech|Karateka Gunner|b|Autor relata várias tentativas
+Big Razor Mech|Spartan Warrior Mech|Golden Slayer|b|
+Hercules Mech|Doctor Shock|Punisher Bot|b|
+Killer Driller|Metal Dragon|Black Belt Archer|b|
+Hyper Blazer|Spartan Warrior Mech|Red Mercury Dragon|b|
+Black Belt Archer|Blue Steel Bahamut|Camu Metal Dragon|b|
+Converter Wizard|Spartan Warrior Mech|Robot Hunter|b|
+Armored Core Alpha|Killer Driller|Red Dragon|b|
+Red Mercury Dragon|Spartan Warrior Mech|MegaBot|b|Autor relata várias tentativas
+Forge Dragon|Red Mercury Dragon|Red Mercury Dragon|b|Raro no relato
+Laser Blade Automech|Red Mercury Dragon|Spartan Warrior Mech|b|+1 power up
+2-Head Frostfire Dragon|Spartan Warrior Mech|Spartan Warrior Mech|b|
+Siege Striker|Forge Dragon|Red Mercury Dragon|b|Autor relata várias tentativas
+Massive Gunner Mech|Forge Dragon|Red Mercury Dragon|b|Raro no relato
+Z Project Mech|Forge Dragon|Red Mercury Dragon|b|Autor relata várias tentativas
+Massive Cannon Mech|Punisher Bot|Spartan Warrior Mech|b|
+King Kong Mech|MegaBot|Soldier V|b|
+Fire Godzilla Mech|Spartan Warrior Mech|Red Mercury Dragon|b|+2 power ups
+Golden Slayer|Spartan Warrior Mech|MegaBot|b|
+Fire Godzilla Mech|Spartan Warrior Mech|Red Mercury Dragon|b|+2 power ups · Autor relata várias tentativas
+Siege Striker|Red Mercury Dragon|Spartan Warrior Mech|b|Autor relata várias tentativas · Autor relata várias tentativas
+Arachnid Mech|Spartan Warrior Mech|Killer Driller|b|Autor relata várias tentativas
+Nebular Dragon Rider|Rune Golem Drone|Rune Golem|b|
+Celestial Megamech|Space Elf Healer|F-117|b|
+Fire Godzilla Mech|Red Mercury Dragon|Forge Dragon|b|
+Metal Dragon|Rune Golem|Mechanical Golem|b|
+Nemesis Core|Supreme Bot|Metal Dragon|b|
+Laser Blade Automech|Spartan Warrior Mech|Red Mercury Dragon|b|
+Brutus Mech|Proto Winged Mech|Red Baron|b|
+Hercules Mech|Fire Godzilla Mech|Erradicator|b|
+Z Project Mech|Fire Godzilla Mech|Massive Gunner Mech|b|
+2-Gun Exobot|Massive Gunner Mech|Erradicator|b|
+Gamera Mech|Massive Gunner Mech|Fire Godzilla Mech|b|
+2-Head Frostfire Dragon|Massive Gunner Mech|Fire Godzilla Mech|b|
+Spartan Warrior Mech|Fire Godzilla Mech|Massive Gunner Mech|b|
+Executioner Mech|Fire Godzilla Mech|Massive Gunner Mech|b|
+Liquid Mech|Metal Dragon|Red Mercury Dragon|b|
+Red Mercury Dragon|Spartan Warrior Mech|Metal Dragon|b|+1 power up
+Fire Godzilla Mech|Spartan Warrior Mech|Red Mercury Dragon|b|
+Robot Hunter|Spartan Warrior Mech|Soldier|b|
+King Kong Mech|Laser Blade Automech|Spartan Warrior Mech|b|
+Black Metal Dragon|Samurai Bot|Killer Driller|b|
+2-Gun Exobot|Ether Messiah|Brutus Mech|b|
+Ether Messiah|Black Metal Dragon|Metal Dragon|b|
+Golden Golem|Hercules Mech|Black Metal Dragon|b|
+Massive Gunner Mech|Red Mercury Dragon|Electric Dragon|b|
+Ultra-Mech|Punisher Bot|Blue Steel Bahamut|b|
+Forge Dragon|Red Mercury Dragon|Double Cannon Mech|b|
+Nemesis Core|Metal Dragon|Samurai Bot|b|Raro no relato
+Silver Hercules|Spartan Warrior Mech|Helicopter V|b|
+Dark Ether Messiah|Metal Dragon|Spartan Warrior Mech|b|
+Dragonborn Mech|Silver Hercules|Camu Metal Dragon|b|
+Killer Driller|Celestial Megamech|Alien Instigator|b|
+Proto Winged Mech|Spartan Warrior Mech|Arachnid Mech|b|
+Armored Core Alpha|Metal Dragon|Rune Golem|b|
+Gamera Mech|Proto Winged Mech|Golden Slayer|b|
+Executioner Mech|Proto Winged Mech|Golden Slayer|b|
+Dual Blade Automech|Alien Instigator|Killer Driller|b|
+Karateka Gunner|Spartan Warrior Mech|Roller Skater Mech|b|Raro no relato
+Executioner Mech|Fire Godzilla Mech|Ultrabot Mech|b|
+Great Shogun Mech|Red Mercury Dragon|Metal Dragon|b|
+Swat Soldier|Red Baron|Z Project Mech|b|
+Dark Ether Messiah|Red Baron|Z Project Mech|b|
+Liquid Mech|Dark Ether Messiah|Ether Messiah|b|
+Spider Bot|Dark Ether Messiah|Ether Messiah|b|
+Double Cannon Mech|Ether Messiah|Dark Ether Messiah|b|
+Hyper Blazer|Ether Messiah|Red Baron|b|
+Fire Karateka|Ether Messiah|Red Baron|b|
+Nemesis Core|Ether Messiah|Red Baron|b|
+Ultra-Mech|Ether Messiah|Red Baron|b|
+Red Mercury Dragon|Ether Messiah|Dark Ether Messiah|b|
+Cyber Samurai Mech|Ether Messiah|Dark Ether Messiah|b|
+Executioner Mech|Red Mercury Dragon|Z Project Mech|b|
+Dragonborn Mech|Roller Skater|Metal Dragon|b|
+Liquid Mech|Spartan Warrior Mech|Armored Core Alpha|b|
+Great Shogun Mech|Red Mercury Dragon|Ether Messiah|b|
+Godzilla Mech|Spartan Warrior Mech|2-Head Frostfire Dragon|b|
+Laser Blade Automech|Spartan Warrior Mech|Black Metal Dragon|b|
+Spider Bot|Dual Blade Automech|Nemesis Core|b|
+Watcher Hero|Great Shogun Mech|Proto Winged Mech|b|+ 2 power-ups
+Fire Godzilla Mech|2-Head Frostfire Dragon|Dragonborn Mech|b|
+Pharaoh Warrior Mech|King Kong Mech|Spartan Warrior Mech|b|
+Metal Dragon|Red Spinner|MegaBot|b|
+Laser Blade Automech|Red Mercury Dragon|Red Spinner|b|
+Liquid Mech|Red Mercury Dragon|Red Spinner|b|
+Electric Dragon|2-Gun Exobot|Hercules Mech|b|
+Evil Hannibal|Soldier|Soldier|b|35 min no relato
+Sergeant Megan|Soldier V|Bazooka|b|
+Sergeant Megan|General Scarlett|Soldier|b|
+General Scarlett|Soldier|Soldier V|b|
+Rambo|Tank V|Soldier V|b|
+Red Tank|Soldier II|Machine Gun Jeep|b|
+MegaTank|Tank V|Machine Gun Jeep|b|
+Dino Rider Elf|Supreme Bot|Supreme Bot|b|
+Nebula Knight|Blue Steel Draggy|F-117|b|
+Poison Spider|Soldier|Mr. Cigar|b|
+UFO|Mr. Cigar|Soldier V|b|
+Robot Hunter|F-117|F-117|b|
+Space Elf Healer|F-117|F-117|b|
+Gamera Drone|War Buggy|Stealth Fighter|b|
+Swamp Minion|Bazooka III|Double Gun Soldier|b|
+Nebular Sniper|Soldier III|Swamp Minion|b|
+Blazing Beast Rider|Celestial Megamech|Red Spinner|b|
+Arachnid Drone|Space Elf Healer|Engineer|b|
+Massive Gunner Drone|Rune Golem Drone|Soldier V|b|
+Nemesis Core Drone|Plane II|Plane II|b|
+Viking Sniper|Double Bazooka Soldier|Mr. Treat|b|
+Winged Paladin|Mr. Treat|Doctor Shock|b|
+Nebular Priest|MegaBot|UN Allied|b|
+Gamera Drone|Mechanical Golem|Rune Golem|b|
+Swamp Minion|Soldier III|Double Gun Soldier|b|
+Swamp Monster|Black Metal Dragon|Destruction Wizard|b|
+Space Airship Elf|Stealth Fighter|Red Baron|b|
+Great Sword Warrior|Engineer|Supreme Bot|b|
+Gunbot|Erradicator|Celestial Megamech|b|
+Massive Cannon Drone|General Scarlett|War Buggy|b|Não confirmado na fonte
+Gamera Mech|King Kong Mech|Godzilla Mech|b|
+Executioner Mech|Fire Godzilla Mech|Black Metal Dragon|b|
+Blue Steel Bahamut|Red Mercury Dragon|Tank V|b|
+Robot Hunter|Blue Steel Draggy|MegaBot|b|
+Killer Driller|Spartan Warrior Mech|APC|b|
+Watcher Hero|Executioner Mech|Prime Automech|b|
+Black Brutus Mech|Alien Instigator|Electric Dragon|b|
+Double Gun Soldier|Soldier|Soldier V|b|
+Double Bazooka Jeep|Tank|Bazooka II|b|
+F-117|Gamera Drone|Nebular Dragon Rider|b|
+Stealth Fighter|F-117|Double Gun Soldier|b|
+Forge Dragon|Dark Ether Messiah|Ether Messiah|b|
+Samurai Bot|Blue Steel Bahamut|Fire T-Rex|j
+Samurai Bot|Camu Metal Dragon|F-117|j
+Samurai Bot|Camu Metal Dragon|Nebular Dragon Rider|j|Identificado pela silhueta.
+Samurai Bot|Camu Metal Dragon|Nebular Dragon Knight|j|Identificado pela silhueta.
+Samurai Bot|Camu Metal Dragon|UFO|j
+Samurai Bot|Celestial Megamech|Metal Dragon|j
+Samurai Bot|F-117|Metal Dragon|j|Identificado pela silhueta.
+Samurai Bot|Fire Godzilla Mech|Soldier I|j
+Samurai Bot|Spartan Warrior Mech|Viking Sniper|j
+Samurai Bot|UFO|MegaBot|j
+Samurai Minibot|Machine Gun Jeep III|Soldier I|j|Identificado pela silhueta.
+Samurai Minibot|Soldier V|Soldier V|j
+Blue Steel Bahamut|Red Mercury Dragon|Tank V|h
+Blue Steel Bahamut|Samurai Bot|Celestial Megamech|h
+Blue Steel Bahamut|War Buggy|Hyper Blazer|h
+Blue Steel Bahamut|Metal Draggy|Golden Slayer|h
+Roller Skater|Celestial Megamech|Supreme Bot|r
+MULTIFORMS|MegaBot|Spartan Warrior Mech|m
+MULTIFORMS|Red Mercury Dragon|Spartan Warrior Mech|m
+MULTIFORMS|Forge Dragon|Celestial Megamech|m
+MULTIFORMS|Spartan Warrior Mech|Samurai Bot|m
+Siege Striker|Fire Godzilla Mech|Fire Godzilla Mech|s
+Siege Striker|Fire Godzilla Mech|Godzilla Mech|s
+Siege Striker|Fire Godzilla Mech|Massive Gunner Mech|s
+Siege Striker|Red Mercury Dragon|Avenger Mech|s
+Siege Striker|Red Mercury Dragon|Dual Blade Automech|s
+Siege Striker|Red Mercury Dragon|Electric Dragon|s
+Siege Striker|Red Mercury Dragon|Forge Dragon|s
+Siege Striker|Red Mercury Dragon|Spartan Warrior Mech|s
+Siege Striker|Red Mercury Dragon|Z Project Mech|s
+Siege Striker|Massive Gunner Mech|Spartan Warrior Mech|s
+Siege Striker|Spartan Warrior Mech|Ultra-Mech|s
+Siege Striker|Spartan Warrior Mech|Golden Slayer|s
+Siege Striker|Massive Gunner Mech|Forge Dragon|s
+Liquid Mech|Arachnid Mech|Avenger Mech|f
+Big Razor Mech|Liquid Mech|Proto Winged Mech|f
+Great Shogun Mech|Hercules Mech|Dark Ether Messiah|f
+Red Mercury Dragon|Hercules Mech|Dark Ether Messiah|f|O autor relata 2 cliques em Cash.
+Watcher Hero|Red Mercury Dragon|Dark Ether Messiah|f|O autor relata 13 cliques em Cash.
+Cyber Samurai Mech|Dark Ether Messiah|Armored Core|f`;
+for (const entry of additionalRecipes.split('\n')) {
+  const [name,a,b,code,note] = entry.split('|');
+  if (!catalog.has(name)) {
+    const [hp,photo,codexName] = stats[name] || [null,''];
+    const unit = {name,hp,photo,codexName,slug:name.replaceAll(' ','_'),recipes:[]};
+    units.push(unit);
+    catalog.set(name,unit);
+  }
+  const unit = catalog.get(name);
+  const existing = unit.recipes.find(([left,right])=>pairOf(left,right)===pairOf(a,b));
+  if (existing) {
+    if (!existing[2].split(',').includes(code)) existing[2]+=','+code;
+    if (!existing[3] && note) existing[3]=note;
+  } else unit.recipes.push([a,b,code,note]);
+}
+const allRecipes = units.flatMap(unit=>unit.recipes);
+const recipeUsage = new Map();
+for (const [left,right] of allRecipes) {
+  for (const name of new Set([left,right])) {
+    recipeUsage.set(name,(recipeUsage.get(name) || 0)+1);
+  }
+}
+function usageBadge(name) {
+  const count=recipeUsage.get(name) || 0;
+  const label=count===1?'receita':'receitas';
+  return ' <span class="recipe-usage">(usada em '+count+' '+label+')</span>';
+}
+const alphabeticalOrder = new Intl.Collator('pt-BR',{sensitivity:'base',ignorePunctuation:true,numeric:true});
+const compareNames = (a,b)=>alphabeticalOrder.compare(a,b) || a.localeCompare(b,'pt-BR');
+const ingredients = [...new Set(allRecipes.flatMap(([a,b])=>[a,b]))].sort(compareNames);
+const base = ingredients.filter(name=>!catalog.get(name)?.recipes.length);
+const routes = new Map(base.map(name=>[name,{stage:0,fusions:0}]));
+const unknownRoute = {stage:Infinity,fusions:Infinity};
+const routeOf = name=>routes.get(name) || unknownRoute;
+function recipeRoute([a,b]) {
+  const left = routeOf(a);
+  const right = routeOf(b);
+  return {stage:1+Math.max(left.stage,right.stage),fusions:1+left.fusions+right.fusions};
+}
+function compareRoutes(a,b) {
+  return (a.stage-b.stage) || (a.fusions-b.fusions) || 0;
+}
+// Rotas sem entrada a partir da base ficam sem etapa, inclusive ciclos fechados.
+let improved;
+do {
+  improved=false;
+  for (const unit of units) {
+    for (const recipe of unit.recipes) {
+      const candidate = recipeRoute(recipe);
+      if (compareRoutes(candidate,routeOf(unit.name))>=0) continue;
+      routes.set(unit.name,candidate);
+      improved=true;
+    }
+  }
+} while (improved);
+units.sort((a,b)=>compareRoutes(routeOf(a.name),routeOf(b.name)) || a.name.localeCompare(b.name,'pt-BR'));
+for (const unit of units) {
+  unit.recipes.sort((a,b)=>compareRoutes(recipeRoute(a),recipeRoute(b)));
+}
+const unitHref = name=>'#unidade/'+encodeURIComponent(name);
+const unitLink = name=>'<a href="'+unitHref(name)+'">'+name+'</a>';
+document.getElementById('base-ingredients').innerHTML=base.map(unitLink).join(' · ');
+const pairs = new Map();
+for (const unit of units) {
+  for (const [a,b] of unit.recipes) {
+    const key = pairOf(a,b);
+    if (!pairs.has(key)) pairs.set(key,[]);
+    pairs.get(key).push(unit.name);
+  }
+}
+const most = [...pairs].sort((a,b)=>b[1].length-a[1].length)[0];
+document.getElementById('top').textContent = most[0]+' tem '+most[1].length+' resultados nesta lista: '+most[1].join(', ')+'.';
+const query = document.getElementById('query');
+const inventory = document.getElementById('inventory');
+const available = document.getElementById('available');
+const hpFilter = document.getElementById('hp-filter');
+const owned = new Set();
+const inventoryStorageKey = 'atom-fusion-units';
+const inventoryStorageStatus = document.getElementById('inventory-storage-status');
+const inventoryCheckboxes = new Map();
+function restoreInventory() {
+  let saved;
+  try {
+    saved = JSON.parse(localStorage.getItem(inventoryStorageKey) || '[]');
+  } catch {
+    inventoryStorageStatus.textContent='O navegador não conseguiu ler as marcações salvas para esta página.';
+    return;
+  }
+  owned.clear();
+  if (Array.isArray(saved)) {
+    for (const name of saved) {
+      if (typeof name==='string') owned.add(name);
+    }
+  }
+  for (const [name,box] of inventoryCheckboxes) box.checked=owned.has(name);
+  inventoryStorageStatus.textContent='';
+}
+function makeInventoryRows() {
+  return codexNames.map(name=>{
+    const label = document.createElement('label');
+    const box = document.createElement('input');
+    box.type='checkbox';
+    box.autocomplete='off';
+    inventoryCheckboxes.set(name,box);
+    box.addEventListener('change',()=>{
+      if (box.checked) owned.add(name);
+      else owned.delete(name);
+      try {
+        localStorage.setItem(inventoryStorageKey,JSON.stringify([...owned]));
+        inventoryStorageStatus.textContent='';
+      } catch {
+        inventoryStorageStatus.textContent='O navegador bloqueou o armazenamento. As marcações ficam disponíveis até você fechar ou recarregar a página.';
+      }
+      render();
+    });
+    const link = document.createElement('a');
+    link.href=unitHref(name);
+    link.textContent=name;
+    box.setAttribute('aria-label', 'Tenho ' + name);
+    const thumbnail = document.createElement('span');
+    thumbnail.className = 'portrait';
+    thumbnail.innerHTML = portrait(unitFor(name), true);
+    label.append(box,thumbnail,link);
+    return label;
+  });
+}
+let inventoryColumnCount=0;
+function layoutInventory(width) {
+  const columns = Math.min(inventoryRows.length,Math.max(1,Math.floor((width+16)/206)));
+  if (columns===inventoryColumnCount) return;
+  inventoryColumnCount=columns;
+  const rowsPerColumn=Math.ceil(inventoryRows.length/columns);
+  const columnElements=[];
+  for (let start=0;start<inventoryRows.length;start+=rowsPerColumn) {
+    const column=document.createElement('div');
+    column.className='inventory-column';
+    column.append(...inventoryRows.slice(start,start+rowsPerColumn));
+    columnElements.push(column);
+  }
+  inventory.replaceChildren(...columnElements);
+  inventory.style.setProperty('--inventory-columns',columns);
+}
+function sourceLink(code, unit) {
+  if (code==='s') return '<a href="'+sources.w[1]+'Siege_Striker">Wiki (Siege Striker)</a>';
+  if (moreSources[code]) return '<a href="'+sources.w[1]+moreSources[code]+'">Wiki</a>';
+  const [label,url] = sources[code];
+  return '<a href="'+url+(code==='w'?unit.slug:'')+'">'+label+'</a>';
+}
+function portrait(unit, thumbnail=false) {
+  const fallback = thumbnail?'Sem imagem':'Sem imagem verificada';
+  return unit.photo ? '<img loading="lazy" alt="'+(thumbnail?'':unit.name)+'" src="https://wars.fbgamesweb.com/assets/thumbs/'+unit.photo+'.jpg" onerror="this.parentElement.textContent=\''+fallback+'\'">' : fallback;
+}
+function fusionUnitLink(name) {
+  const unit=unitFor(name);
+  if (!unit.photo) return unitLink(name);
+  return '<a class="fusion-unit-link" href="'+unitHref(name)+'">'+name+
+    '<span class="portrait fusion-unit-preview" aria-hidden="true">'+portrait(unit,true)+'</span></a>';
+}
+function render() {
+  const term = query.value.trim().toLowerCase();
+  let total=0;
+  const cards=[];
+  let previousStage;
+  for (const unit of units) {
+    const hpGroup = unit.hp===null?'unknown':unit.hp<1000?'low':unit.hp<3000?'mid':'high';
+    if (hpFilter.value && hpFilter.value!==hpGroup) continue;
+    const nameMatch=unit.name.toLowerCase().includes(term);
+    const recipes=unit.recipes.filter(([a,b])=>
+      (nameMatch || pairOf(a,b).toLowerCase().includes(term)) &&
+      (!available.checked || (owned.has(a) && owned.has(b))));
+    if (!recipes.length && (unit.recipes.length || available.checked || !nameMatch)) continue;
+    total+=recipes.length;
+    const picture=portrait(unit);
+    const route=routeOf(unit.name);
+    const linkFor = Number.isFinite(route.stage) && route.stage>=1 ? fusionUnitLink : unitLink;
+    const stageUnit = name=>linkFor(name)+usageBadge(name);
+    const later=[];
+    const list=[];
+    for (const recipe of recipes) {
+      const [a,b,codes,note]=recipe;
+      const recipeStage=recipeRoute(recipe).stage;
+      const alternatives=pairs.get(pairOf(a,b)).filter(name=>name!==unit.name);
+      const ingredientStage=name=>Number.isFinite(routeOf(name).stage)?'etapa '+routeOf(name).stage:'etapa indefinida';
+      const entry='<li><strong>'+linkFor(a)+' + '+linkFor(b)+'</strong>'+
+        (owned.has(a)&&owned.has(b)?' <span class="ready">'+(a===b?'Requer duas cópias':'No inventário')+'</span>':'')+
+        '<span class="recipe-note">'+a+' ('+ingredientStage(a)+') · '+b+' ('+ingredientStage(b)+')</span>'+
+        '<span class="recipe-note">'+(note?note+' · ':'')+codes.split(',').map(code=>sourceLink(code,unit)).join(' · ')+'</span>'+
+        (alternatives.length?'<span class="recipe-note">Também relatado: '+alternatives.map(linkFor).join(', ')+'</span>':'')+'</li>';
+      if (recipeStage>route.stage && !available.checked && !term) later.push(entry);
+      else list.push(entry);
+    }
+    if (route.stage!==previousStage) {
+      cards.push('<h2 class="stage">'+(Number.isFinite(route.stage)?'Etapa '+route.stage:'Sem rota a partir da base')+'</h2>');
+      previousStage=route.stage;
+    }
+    const hpLabel=unit.hp===null?'HP sem fonte localizada':unit.hp.toLocaleString('pt-BR')+' HP';
+    cards.push('<article><div class="unit"><div class="portrait">'+picture+'</div><div><div class="hp">'+hpLabel+'</div><h3>'+stageUnit(unit.name)+'</h3></div></div>'+
+      (unit.name==='Dark Ether Messiah'?'<p class="sub">Aparece na categoria HP 3000+ da Wiki. O <a href="'+sources.c[1]+'">Códice</a> registra 2.250 HP.</p>':'')+
+      (unit.codexName?'<p class="sub">No Códice: '+unit.codexName+'</p>':'')+
+      (list.length?'<ul>'+list.join('')+'</ul>':recipes.length?'':'<p class="sub">Receita de fusão ainda sem fonte localizada.</p>')+
+      (later.length?'<details class="later"><summary>Receitas com ingredientes de etapas posteriores ('+later.length+')</summary><ul>'+later.join('')+'</ul></details>':'')+'</article>');
+  }
+  document.getElementById('cards').innerHTML=cards.join('');
+  const visibleUnits=cards.filter(card=>card.startsWith('<article')).length;
+  document.getElementById('count').textContent=visibleUnits
+    ?visibleUnits+' unidades · '+total+' receitas por resultado'+(!term&&!available.checked&&!hpFilter.value?' · '+pairs.size+' duplas distintas':'')
+    :'Nenhuma receita encontrada com esses filtros.';
+}
+// Fichas da aba Units do Códice, agrupadas por nome.
+const codexRoster = `2-Gun Exobot|1900|1236_2gun_exobot
+2-Head Frostfire Draggy|475|1283_frost_fire_draggy
+2-Head Frostfire Dragon|3000|1280_frost_fire_dragon
+Acid Alien|200|1146_basic_alien_s
+Air Strike|450|1043_air_strike_m
+Aircraft|350|1015_aircraft_1_m
+Aircraft II|450|1025_aircraft_2_m
+Aircraft III|600|1026_aircraft_3_m
+Aircraft IV|600|1094_aircraft_4_m
+Aircraft V|600|1095_aircraft_5_m
+Alien Instigator|1700|1170_alien_instigator
+Alpha Drone|400|1128_huge_draggy_m
+Andromeda Combat Droid|750|1295_andromeda_combat_droid
+Andromeda Private|160|1292_andromeda_private
+Andromeda Spaceship|900|1296_andromeda_combat_spaceship
+Antiaircraft battery|475|1065_antiaircraft_battery_m
+APC|425|1010_apc_m
+Arachnid Drone|475|1273_transformer_aracnid_drone
+Arachnid Mech|2900|1272_transformer_aracnid
+Armored Core Alpha|1800|1127_huge_robot_m
+ATP Mech|1800|1212_tetrapod_mech
+Avenger Mech|3100|1287_avenger_mech
+Avenger Mech Drone|500|1286_avenger_mech_draggy
+Axe Zoldier|180|1106_hacha_m_2
+B52|450|1068_b52_m
+Basic Ork Tank|300|1124_ork_tank_1
+Bazooka|50|1008_bazooka_1_m
+Bazooka II|55|1022_bazooka_2_m
+Bazooka III|60|1023_bazooka_3_m
+Bazooka IV|115|1063_bazooka_4_m
+Bazooka Soldier|100|1078_robo_bazooka_m
+Bazooka V|125|1064_bazooka_5_m
+Bear Ridda|450|1109_orco_jinete_m_2
+Big Handsaw Ork|1250|1115_orc_robot_22_m
+Big Laser Viking|800|1183_laser_viking
+Big Razor Mech|2700|1256_big_razor_mech
+Big Razor Mech Drone|450|1257_big_razor_mech_drone
+Big Spider|350|1145_spider_semi_boss_s_2
+Black Belt Archer|1750|1207_transformer_archer
+Black Brutus Mech|2100|1279_black_brutus_mech
+Black Draggy|450|1196_black_draggy
+Black Dragon|1950|1191_black_dragon
+Blazing Beast Rider|1200|1213_nebular_monster_rider
+Blue Draggy|400|1098_blue_draggy_m
+Blue Dragon|1750|1100_blue_dragon2_m
+Blue Steel Bahamut|1900|1167_bahamut_metalico
+Blue Steel Draggy|450|1168_bahamut_metalico_draggy
+Brutus Mech|1900|1217_brutus_mech
+Burning Slayer|2500|1250_red_slayer
+Burning Slayer Drone|450|1251_red_slayer_drone
+Camu Draggy|425|1120_metal_draggy_2_m
+Camu Metal Dragon|1850|1119_metal_dragon2_m
+Celestial Megamech|1700|1101_celestial_megamech_m
+Chainsaw Butcher|700|1175_viking_butcher
+Claw Alien|200|1148_alien_claws_s
+Claw Spider|200|1143_melee_spider_s
+Converter Wizard|1500|1241_enemy_converter_priest
+Crusader Bot|1250|1150_crusader_bot
+Crusader Priest|275|1151_crusader_priest
+Crusader Soldier|90|1076_robo_soldier_m
+Crusader Tank|620|1083_demlisher_tank_m
+Cyber Samurai  Drone|450|1238_cyber_samurai_mech_drone
+Cyber Samurai Mech|2200|1237_cyber_samurai_mech
+Dark Ether Messiah|2250|1239_dark_ether_messiah
+Dark Ether Messiah Drone|450|1240_dark_ether_messiah_drone
+Demolition Tank|575|1069_bigheaded_tank_m
+Destruction Wizard|750|1288_destruction_wizard
+Dino Rider Elf|1300|1282_elf_dino_rider
+Doctor Shock|1850|1225_doctor_shock
+Dominion Tank|475|1047_black_tank_2_m
+Double Bazooka|400|1036_double_bazooka_m
+Double Bazooka Jeep|275|1044_double_bazooka_jeep_m
+Double Cannon Drone|450|1247_double_cannon_drone
+Double Cannon Mech|2300|1246_double_cannon_mech
+Double Gun Soldier|110|1045_double_gun_soldier_m
+Dragonborn Drone|425|1193_dragon_mech_drone
+Dragonborn Mech|1950|1192_dragon_mech
+Dreadnought|1200|1084_dreadnought_m
+Dual Blade Automech|2000|1205_dual_blade_automech
+Dual Blade Automech Drone|425|1206_dual_blade_automech_drone
+Electric Draggy|475|1195_electric_draggy
+Electric Dragon|2000|1194_electric_dragon_2
+Elephant rider|90|1056_elephant_rider_m
+Engineer|120|1051_mechanic_m
+Erradicator|550|1073_erradicator_m
+Ether Messiah|1900|1178_ether_messiah
+Ether Messiah Drone|450|1179_ether_messiah_drone
+Evil Hannibal|150|1012_bad_boy
+Executioner Mech|3200|1290_executioner_mech
+Executioner Mech Drone|500|1289_executioner_mech_draggy
+F-117|700|1096_f117_m
+Fire Godzilla Drone|550|1306_blackGodzilla_drone
+Fire Godzilla Mech|3800|1305_blackGodzilla_mech
+Fire Karateka|1800|1184_karateka
+Fire T-Rex|3000|1093_trex_m
+Fireman|40|1104_fireman_1_m
+Flamethrowa Ork|275|1113_orc_flamethrower_m
+Flamethrower|120|1046_flamethrower_m
+Forge Dragon|2300|1243_forge_dragon
+Forge Dragon Draggy|450|1244_forge_draggy
+Gamera Drone|550|1300_gameraDrone
+Gamera Mech|3500|1299_gameraMech
+General Mike|250|1017_good_boy
+General Scarlett|250|1009_good_girl_m
+Giant Walker|700|1090_giant_walker_m
+Godzilla Mech|3300|1293_godzilla_mech
+Godzilla Mech Drone|525|1294_godzilla_mech_drone
+Golden Golem|1950|1190_gold_golem
+Golden Slayer|1900|1181_transformer_sword
+Golden Slayer Drone|475|1182_transformer_sword_drone
+GolemBoss|15000|1053_golem_boss_m
+Great Shogun Mech|2050|1210_samurai_mech
+Great Shogun Mech Drone|450|1211_samurai_mech_drone
+Greatsword Warrior|700|1188_avatar_great_warrior
+Gun Zoldier|100|1107_metralleta_m_2
+GunBot|1200|1061_baby_robot_m
+Helicopter|200|1027_helicopter_1_m
+Helicopter II|300|1028_helicopter_2_m
+Helicopter III|350|1029_helicopter_3_m
+Helicopter IV|400|1066_helicopter_4_m
+Helicopter V|450|1067_helicopter_5_m
+Hercules Mech|1900|1242_herkules_mech
+Horned Alien|800|1147_alien_bull_s
+Horned Badass|650|1111_robot_orco_1_m
+Horned Beast Ork|300|1111_robot_orco_1_m
+Huge Spider|800|1145_spider_semi_boss_s_2
+Hyper Blazer|1850|1172_mega_fire_bot
+Hyper Blazer Drone|425|1173_mega_fire_bot_drone
+Jet Soldier|160|1079_robo_jumper_m
+Kamikaze|100|1176_kamikaze
+Kamikaze Bros|600|1117_orc_kamikaze_team
+Kamikaze critter|90|1118_squig_kamikaze
+Kamikaze Pet|90|1118_squig_kamikaze
+Kamikaze team|600|1117_orc_kamikaze_team
+Karateka Gunner|2600|1252_karateka_gunner
+Killer Bazooka Jeep|600|1006_red_bazooka_jeep_m
+Killer Driller|1950|1223_drill
+King Kong Drone|550|1298_kingKongDrone
+King Kong Mech|3400|1297_kingKongMech
+Knife Throwa|200|1114_orc_knivethrower_m
+Laser Blade Automech|2600|1248_laser_blade_automech
+Laser Blade Automech Drone|425|1249_laser_blade_automech_drone
+Liquid Mech|2150|1222_liquid_mech
+Liquid Mech  Drone|450|1224_liquid_mech _drone
+Machine Gun Jeep|150|1014_machinegunjeep_1_m
+Machine Gun Jeep II|200|1030_machinegunjeep_2_m
+Machine Gun Jeep III|250|1031_machinegunjeep_3_m
+Massive Cannon Drone|450|1216_massive_cannon_drone
+Massive Cannon Mech|2100|1215_massive_cannon_mech
+Massive Gunner Drone|550|1304_massiveGunnerDrone
+Massive Gunner Mech|3700|1303_massiveGunnerMech
+Mechanical Golem|1650|1053_golem_boss_m
+Medic|110|1050_medic_m
+Mega-Axe|600|1089_robo_axe_m
+MegaBot|1600|1062_bumblebee_m
+MegaFire T-Rex|1950|1093_trex_m
+Megalancer|575|1082_robo_lancer_m
+MegaTank|1000|1037_megatank
+Melee Spider|110|1143_melee_spider_s
+Metal Draggy|410|1085_metal_draggy_m
+Metal Dragon|1800|1105_metalico_dragon3_m
+Missile Tank|630|1091_missile_tank_m
+Molotov Kopta|675|1110_helicoptero_orco_m2
+Mortar Thrower|50|1060_mortar_m
+Motorized Soldier|300|1080_robo_biker_m
+Mr. Cigar|400|1033_mr_cigar
+Mr. Treat|200|1055_mr_t_m
+Multi Morpher|2200|1274_multi_morph
+Nebular Archer|120|1187_avatar_arquero
+Nebular Assault Quad|700|1200_nebular_motorized
+Nebular Bicopter|750|1209_nebular_blue_bicopter
+Nebular Dragon Knight|800|1219_nebular_rider
+Nebular Dragon Knight Draggy|250|1221_nebular_rider_draggy
+Nebular Dragon Rider|725|1199_nebular_dragon_rider
+Nebular Dragon Rider Draggy|200|1202_nebular_dragon_rider_draggy
+Nebular Knight|280|1198_nebular_horse_rider
+Nebular Maze Warrior|750|1214_nebular_maze_warrior
+Nebular Priest|800|1208_nebula_priest
+Nebular Rider|650|1189_avatar_jinete
+Nebular Sniper|500|1220_nebular_sniper
+Nebular Spearman|210|1186_avatar_soldado
+Nemesis Core|1800|1162_ultra_robot
+Nemesis Drone|400|1163_ultra_robot_drone
+Orc Big Tank|350|1116_orc_tank_m
+Orc Knifethrower|100|1114_orc_knivethrower_m
+Orc Swordsman|90|1123_orc_basic_knife_2
+Orc Tank|650|1116_orc_tank_m
+Orc Worker|25|1125_orc_worker
+Orc Zoldier|40|1122_orc_basic_gun_2
+Ork Bear Knight|150|1109_orco_jinete_m_2
+Ork Kopta|250|1110_helicoptero_orco_m2
+Pharaoh Mech Drone|450|1277_egyptian_warrior_drone
+Pharaoh Warrior Mech|2850|1271_egyptian_warrior_mech
+Poison Spider|150|1144_ranged_spider_s
+Prime Automech|2400|1254_optimus_prime
+Prime Automech Drone|450|1255_optimus_prime_drone
+Proto Winged Drone|475|1269_winged_transformer_drone
+Proto Winged Mech|2900|1268_winged_transformer
+Punisher Bot|1600|1074_punisher_m
+Ranbo|500|1072_rambo_m
+Red Baron|675|1102_red_baron_m
+Red chopper|400|1038_red_helicopter_m
+Red Draggy|390|1097_red_draggy_m
+Red Dragon|1700|1099_red_dragon2_m
+Red Flamethrowa Ork|125|1113_orc_flamethrower_m
+Red Handsaw Ork|350|1115_orc_robot_22_m
+Red Mercury Draggy|450|1227_dragon_metalic_draggy
+Red Mercury Dragon|2200|1226_dragon_metalic
+Red Spinner|1650|1112_optimus_m
+Red Tank|150|1002_Red_Tank_m
+Reptile Gun|1200|1245_reptile_gun
+Robot Hunter|1400|1180_robot_hunter
+Roller Skater|1750|1169_transformer_skater
+Rune Golem Drone|425|1171_viking_rune_golem_drone
+S.W.A.T. Soldier|1850|1218_swat_soldier
+Samurai Bot|1700|1126_samurai_bot_m
+Samurai Minibot|180|1129_samurai_minibot_m
+Scarface girl|400|1054_scarface_girl
+Sergeant Jack|200|1042_good_guile
+Sergeant Megan|200|1024_good_guillerma
+Ship|500|1019_ship_m2
+Shredder Alien|750|1148_alien_claws_s
+Siege Striker|1500|1285_plasma_striker
+Silver Gunner Elf|800|1281_silver_elf_gunner
+Silver Hercules|1900|1197_herkules_matrix
+Skylander|675|1088_skylander_m
+Small Alien|110|1146_basic_alien_s
+Soldier|50|1007_soldier_1_m
+Soldier II|55|1020_soldier_2_m
+Soldier III|60|1021_soldier_3_m
+Soldier IV|100|1058_soldier_4_m
+Soldier V|110|1059_soldier_5_m
+Space Airship Elf|750|1262_spatial_airship
+Space Archer Elf|140|1260_spatial_archer
+Space Elf Cruiser|1000|1267_spatial_space_ship
+Space Healer Elf|650|1275_spatial_elf_healer
+Space Knight Elf|700|1261_spatial_horseman
+Space Paladin Elf|800|1266_spatial_paladin
+Space Priest Elf|900|1265_spatial_priest
+Space Scouter Elf|750|1276_spatial_exploration_module
+Space Sword Elf|230|1259_spatial_sward
+Spartan Warrior Drone|450|1264_spartan_warrior_drone
+Spartan Warrior Mech|2800|1263_spartan_warrior_mech
+Special Ops.|120|1052_special_ops_2_m
+Special Spy|50|1005_special_spy_m
+Spider Bot|2000|1270_spider_bot
+Stealth Fighter|650|1048_black_aircraft_2_m
+Steel Claws|190|1092_steel_claws_m
+Steel Collector|1500|1201_junk_bot
+Supreme Bot|1625|1075_supreme_m
+Swamp Minion|250|1231_nebula_monster_mini
+Swamp Monster|2000|1228_nebula_monster
+Swordsman Soldier|170|1077_robo_swordsman_m
+T-Rex|1200|1057_t-rex_m
+T-Rex Green|3000|1057_t-rex_m
+Tank|300|1016_cannon_1_m
+Tank II|375|1003_cannon_2_m
+Tank III|450|1004_cannon_3_m
+Tank IV|525|1070_cannon_4_m
+Tank V|600|1071_cannon_5_m
+TankBoss|15000|1053_golem_boss_m
+Truck|200|1013_truck_1_m
+Truck 3|250|1032_truck_3_m
+Truck II|250|1035_truck_2_m
+Tusk Alien|350|1147_alien_bull_s
+UFO|900|1177_ufo
+Ultra-Mech|1800|1152_transformer_gigante
+Ultra-Mech Drone|400|1153_transformer_gigante_drone
+UN Allied|100|1034_un_allied_1_m
+Venom Spider|200|1144_ranged_spider_s
+Viking Airship|700|1158_viking_copter_II
+Viking Airship Outsider|275|1158_viking_copter_II
+Viking Axeman|200|1154_axeman
+Viking Bazooka|150|1165_bazooka_viking
+Viking Bear Knight|550|1156_bear_knight
+Viking Core Bot|1275|1160_dwarf_armored_core
+Viking Core Bot Drone|400|1164_dwarf_armored_core_drone
+Viking Hammerer|650|1159_megahammer_dwarf
+Viking Hammerer Outsider|350|1159_megahammer_dwarf
+Viking MotoSquad|600|1166_viking_motosquad
+Viking Sniper|500|1174_viking_sniper
+Viking Soldier|100|1155_dwarf_soldier
+Viking Tank|650|1157_dwarf_tank
+War Buggy|750|1121_buggy_2_m
+Watcher Hero|2300|1284_cyclop_soldier
+Winged Paladin|850|1291_winged_paladin
+Worker I|25|1001_worker_m
+Worker II|30|1001_worker_m
+Worker III|35|1001_worker_m
+Worker IV|40|1001_worker_m
+Xplosive Beast|300|1108_orc_boss_m_2
+Xplosive Beast ATP|275|1116_orc_tank_m_2
+Xplosive Beast Boss|400|1130_xplosive_boss_2
+Xplosive Ork|650|1108_orc_boss_m_2
+Xtreme Retaliator|650|1081_xtreme_retaliator_m
+Z Project Drone|550|1302_zProjectDrone
+Z Project Mech|3600|1301_zProjectMech
+Zeppelin|700|1103_zeppelin_m
+Zodiac|300|1018_zodiac_m`;
+const codexStats = new Map(codexRoster.split('\n').map(row=>{
+  const [name,hp,photo]=row.split('|');
+  return [name,[Number(hp),photo]];
+}));
+const codexNames=[...new Set([...catalog.keys(),...ingredients,...codexStats.keys()])].sort(compareNames);
+const baseStats = {
+  'APC':[425,'1010_apc_m'],
+  'Aircraft III':[600,'1026_aircraft_3_m'],
+  'Aircraft IV':[600,'1094_aircraft_4_m'],
+  'Alien Instigator':[1700,'1170_alien_instigator'],
+  'Bazooka':[50,'1008_bazooka_1_m'],
+  'Bazooka II':[55,'1022_bazooka_2_m'],
+  'Bazooka III':[60,'1023_bazooka_3_m'],
+  'Blue Steel Draggy':[450,'1168_bahamut_metalico_draggy'],
+  'Camu Metal Dragon':[1850,'1119_metal_dragon2_m'],
+  'Destruction Wizard':[750,'1288_destruction_wizard'],
+  'Dino Elf Rider':[1300,'1282_elf_dino_rider','Dino Rider Elf'],
+  'Doctor Shock':[1850,'1225_doctor_shock'],
+  'Engineer':[120,'1051_mechanic_m'],
+  'Erradicator':[550,'1073_erradicator_m'],
+  'Fire T-Rex':[3000,'1093_trex_m'],
+  'Helicopter V':[450,'1067_helicopter_5_m'],
+  'Mechanical Golem':[1650,'1053_golem_boss_m'],
+  'Mega Bot':[1600,'1062_bumblebee_m','MegaBot'],
+  'Metal Draggy':[410,'1085_metal_draggy_m'],
+  'Mr. Cigar':[400,'1033_mr_cigar'],
+  'Mr. Treat':[200,'1055_mr_t_m'],
+  'Nebular Dragon Knight':[800,'1219_nebular_rider'],
+  'Plane II':[450,'1025_aircraft_2_m','Aircraft II'],
+  'Punisher Bot':[1600,'1074_punisher_m'],
+  'Red Baron':[675,'1102_red_baron_m'],
+  'Roller Skater Mech':[1750,'1169_transformer_skater','Roller Skater'],
+  'Rune Golem Drone':[425,'1171_viking_rune_golem_drone'],
+  'Supreme Bot':[1625,'1075_supreme_m'],
+  'UN Allied':[100,'1034_un_allied_1_m'],
+  'Viking Core':[1275,'1160_dwarf_armored_core','Viking Core Bot'],
+  'War Buggy':[750,'1121_buggy_2_m'],
+  'Soldier':[50,'1007_soldier_1_m'],
+  'Soldier I':[50,'1007_soldier_1_m','Soldier'],
+  'Soldier II':[55,'1020_soldier_2_m'],
+  'Soldier III':[60,'1021_soldier_3_m'],
+  'Soldier V':[110,'1059_soldier_5_m'],
+  'Machine Gun Jeep':[150,'1014_machinegunjeep_1_m'],
+  'Machine Gun Jeep III':[250,'1031_machinegunjeep_3_m'],
+  'Tank':[300,'1016_cannon_1_m'],
+  'Tank II':[375,'1003_cannon_2_m'],
+  'Tank V':[600,'1071_cannon_5_m'],
+  'Blue Dragon':[1750,'1100_blue_dragon2_m'],
+  'Red Dragon':[1700,'1099_red_dragon2_m']
+};
+const unitQuery=document.getElementById('unit-query');
+const fusionView=document.getElementById('fusion-view');
+const codexView=document.getElementById('codex-view');
+const codexIndex=document.getElementById('codex-index');
+const unitDetail=document.getElementById('unit-detail');
+function renderIndex() {
+  const term=unitQuery.value.trim().toLowerCase();
+  const results=codexNames.filter(name=>name.toLowerCase().includes(term) ||
+    (catalog.get(name)?.codexName || baseStats[name]?.[2] || '').toLowerCase().includes(term));
+  document.getElementById('unit-index').innerHTML=results.map(unitLink).join('');
+  document.getElementById('unit-count').textContent=results.length+' unidades';
+}
+function unitFor(name) {
+
+  const [hp,photo,codexName]=stats[name] || baseStats[name] || codexStats.get(name) || [null,''];
+  return catalog.get(name) || {name,hp,photo,codexName,recipes:[]};
+}
+function renderUnit(name) {
+  const unit=unitFor(name);
+  const stage=routeOf(name).stage;
+  const related=units.filter(result=>result.recipes.some(([a,b])=>name===a || name===b));
+  const recipes=unit.recipes.map(([a,b,codes,note])=>'<li>'+unitLink(a)+' + '+unitLink(b)+
+    '<span class="recipe-note">'+(note?note+' · ':'')+codes.split(',').map(code=>sourceLink(code,unit)).join(' · ')+'</span></li>');
+  unitDetail.innerHTML='<p><a href="#unidades">Ver todas as unidades</a></p>'+
+    '<div class="unit"><div class="portrait">'+portrait(unit)+'</div><div>'+
+    '<div class="hp">'+(unit.hp===null?'HP sem fonte localizada':unit.hp.toLocaleString('pt-BR')+' HP')+'</div>'+
+    '<h2 tabindex="-1">'+name+'</h2>'+
+    '<p class="sub">'+(Number.isFinite(stage)?'Etapa '+stage:unit.recipes.length?'Sem rota a partir da base':'')+
+    (unit.codexName?' · No Códice: '+unit.codexName:'')+'</p></div></div>'+
+    '<h3>Como obter por fusão</h3>'+
+    (recipes.length?'<ul>'+recipes.join('')+'</ul>':'<p class="sub">Sem receita registrada no guia.</p>')+
+    (related.length?'<h3>Fusões que usam esta unidade</h3><ul>'+related.map(result=>'<li>'+unitLink(result.name)+'</li>').join('')+'</ul>':'')+
+    '<p><a href="'+sources.c[1]+'#codice">Consultar o Códice do Social Wars</a>'+
+    (unit.slug?' · <a href="'+sources.w[1]+unit.slug+'">Consultar a Wiki</a>':'')+'</p>';
+}
+let fusionScroll=0;
+function showView(focusHeading=false) {
+  const hash=location.hash;
+  let name;
+  if (hash.startsWith('#unidade/')) {
+    try { name=decodeURIComponent(hash.slice('#unidade/'.length)); } catch {}
+  }
+  const hasUnit=codexNames.includes(name);
+  const showCodex=hasUnit || hash==='#unidades' || hash.startsWith('#unidade/');
+  if (showCodex && !fusionView.hidden) fusionScroll=window.scrollY;
+  fusionView.hidden=showCodex;
+  codexView.hidden=!showCodex;
+  codexIndex.hidden=hasUnit;
+  unitDetail.hidden=!hasUnit;
+  document.getElementById('fusion-nav').setAttribute('aria-current',showCodex?'false':'page');
+  document.getElementById('codex-nav').setAttribute('aria-current',showCodex?'page':'false');
+  if (hasUnit) renderUnit(name);
+  else if (showCodex) renderIndex();
+  if (focusHeading && showCodex) {
+    (hasUnit?unitDetail.querySelector('h2'):document.getElementById('codex-heading')).focus();
+  } else if (focusHeading) window.scrollTo(0,fusionScroll);
+}
+unitQuery.addEventListener('input',renderIndex);
+window.addEventListener('hashchange',()=>showView(true));
+query.addEventListener('input',render);
+available.addEventListener('change',render);
+hpFilter.addEventListener('change',render);
+const inventoryRows=makeInventoryRows();
+restoreInventory();
+layoutInventory(inventory.clientWidth);
+if (typeof ResizeObserver==='function') {
+  new ResizeObserver(([entry])=>layoutInventory(entry.contentRect.width)).observe(inventory);
+}
+window.addEventListener('pageshow',()=>{
+  restoreInventory();
+  render();
+});
+window.addEventListener('storage',event=>{
+  if (event.key!==inventoryStorageKey && event.key!==null) return;
+  restoreInventory();
+  render();
+});
+render();
+showView();
+</script>
+</html>
